@@ -1,0 +1,33 @@
+{
+  "name": "magic-ocean",
+  "private": true,
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@google/genai": "^0.0.1",
+    "@imgly/background-removal": "^1.0.0",
+    "dexie": "^3.2.3",
+    "dexie-react-hooks": "^1.5.0",
+    "framer-motion": "^11.0.0",
+    "howler": "^2.2.3",
+    "lucide-react": "^0.483.0",
+    "motion": "^10.20.0",
+    "qrcode.react": "^3.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/howler": "^2.2.1",
+    "@types/node": "^20.14.2",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "typescript": "^5.6.2",
+    "vite": "^5.4.1"
+  }
+}
