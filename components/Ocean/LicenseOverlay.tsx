@@ -113,7 +113,7 @@ export function LicenseOverlay({ onValidated, onOpenAdmin }: LicenseOverlayProps
                 <input 
                   type="text" 
                   value={keyInput}
-                  onChange={(e) => setKeyInput(e.target.value.toUpperCase())}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setKeyInput(e.target.value.toUpperCase())}
                   placeholder="XXXX-XXXX-XXXX-XXXX"
                   className="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl pl-12 pr-4 py-4 text-white font-mono text-xl tracking-[0.2em] focus:outline-none focus:border-indigo-500 transition-all placeholder:text-slate-600 uppercase"
                 />
