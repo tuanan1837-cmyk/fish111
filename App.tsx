@@ -318,6 +318,7 @@ function MagicOceanApp() {
   const [showMenu, setShowMenu] = useState(false);
   const [isLicenseValid, setIsLicenseValid] = useState(false);
   const [licenseInfo, setLicenseInfo] = useState<{ key: string; machineId: string; type: LicenseType; activationDate: number; expiryDate: number; lastRunTime: number } | null>(null);
+  const [forceLicenseLogin, setForceLicenseLogin] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [toast, setToast] = useState<{ message: string, type: 'error' | 'info' | 'success' } | null>(null);
   const [roomId] = useState<string>(() => {
@@ -335,13 +336,15 @@ function MagicOceanApp() {
 
   const handleLicenseValidated = async () => {
     setIsLicenseValid(true);
+    setForceLicenseLogin(false);
     const saved = await LicenseService.getSavedLicense();
     setLicenseInfo(saved || null);
   };
 
   const handleSwitchAccount = async () => {
-    await LicenseService.clearLicense();
+    // Giữ lại license đã lưu để nếu người dùng đăng nhập lại cùng key thì thời gian còn lại không bị reset.
     setIsLicenseValid(false);
+    setForceLicenseLogin(true);
     setLicenseInfo(null);
     setShowMenu(false);
     showToast('Bạn có thể đăng nhập tài khoản khác.', 'info');
@@ -1145,7 +1148,7 @@ function MagicOceanApp() {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-slate-900">
-      {!isLicenseValid && <LicenseOverlay onValidated={handleLicenseValidated} onOpenAdmin={() => setShowAdminPanel(true)} />}
+      {!isLicenseValid && <LicenseOverlay forceLogin={forceLicenseLogin} onValidated={handleLicenseValidated} onOpenAdmin={() => setShowAdminPanel(true)} />}
       <AnimatePresence mode="wait">
         <motion.div key={currentBgIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 2 }} className="absolute inset-0 z-0">
           {(() => {

@@ -4,11 +4,12 @@ import { ShieldCheck, Key, AlertCircle, Info, Trash2, QrCode, Settings } from 'l
 import { LicenseService } from '../../services/LicenseService';
 
 interface LicenseOverlayProps {
+  forceLogin?: boolean;
   onValidated: () => void;
   onOpenAdmin?: () => void;
 }
 
-export function LicenseOverlay({ onValidated, onOpenAdmin }: LicenseOverlayProps) {
+export function LicenseOverlay({ forceLogin = false, onValidated, onOpenAdmin }: LicenseOverlayProps) {
   const [machineId, setMachineId] = useState('');
   const [keyInput, setKeyInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'checking' | 'error' | 'success' | 'expired' | 'cheated'>('idle');
@@ -18,8 +19,14 @@ export function LicenseOverlay({ onValidated, onOpenAdmin }: LicenseOverlayProps
   useEffect(() => {
     const mid = LicenseService.getMachineId();
     setMachineId(mid);
+    if (forceLogin) {
+      setStatus('idle');
+      setMessage('Nhập key của bạn để đăng nhập vào game.');
+      setShowInput(true);
+      return;
+    }
     checkCurrentLicense();
-  }, []);
+  }, [forceLogin]);
 
   const checkCurrentLicense = async () => {
     const result = await LicenseService.checkLicenseStatus();
@@ -31,6 +38,11 @@ export function LicenseOverlay({ onValidated, onOpenAdmin }: LicenseOverlayProps
       setStatus('cheated');
       setMessage(result.message || 'Phát hiện gian lận thời gian!');
       setShowInput(false);
+    } else if (result.status === 'valid' && result.license) {
+      setStatus('success');
+      setMessage('License hợp lệ. Đang vào game...');
+      setShowInput(false);
+      setTimeout(() => onValidated(), 800);
     } else {
       setStatus('idle');
       setMessage('Nhập key của bạn để đăng nhập vào game.');
