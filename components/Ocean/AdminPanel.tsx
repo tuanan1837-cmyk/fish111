@@ -1,5 +1,5 @@
 import React, { useState, type ChangeEvent } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { X, Settings, ShieldCheck, Upload, Trash2, Music, Volume2, QrCode, Key, Copy, CheckCircle2 } from 'lucide-react';
 import { db } from '../../db';
 import { useLiveQuery } from 'dexie-react-hooks';

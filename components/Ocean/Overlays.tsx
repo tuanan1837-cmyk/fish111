@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { Play, QrCode, X, Sparkles, Fish, Activity } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 

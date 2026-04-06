@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Key, AlertCircle, Info, Trash2, QrCode, Settings } from 'lucide-react';
 import { LicenseService } from '../../services/LicenseService';
 

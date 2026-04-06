@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { X, Loader2, Sparkles, Camera, FileImage, AlertCircle, Play } from 'lucide-react';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { PRESET_SOUNDS } from './Constants';
