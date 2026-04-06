@@ -4,6 +4,7 @@ import { ShieldCheck, Key, AlertCircle, Info, Trash2, QrCode, Settings } from 'l
 import { LicenseService } from '../../services/LicenseService';
 
 interface LicenseOverlayProps {
+  key?: React.Key;
   forceLogin?: boolean;
   onValidated: () => void;
   onOpenAdmin?: () => void;
@@ -38,7 +39,7 @@ export function LicenseOverlay({ forceLogin = false, onValidated, onOpenAdmin }:
       setStatus('cheated');
       setMessage(result.message || 'Phát hiện gian lận thời gian!');
       setShowInput(false);
-    } else if (result.status === 'valid' && result.license) {
+    } else if (result.status === 'valid' && result.license && !forceLogin) {
       setStatus('success');
       setMessage('License hợp lệ. Đang vào game...');
       setShowInput(false);

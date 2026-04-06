@@ -1148,7 +1148,7 @@ function MagicOceanApp() {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-slate-900">
-      {!isLicenseValid && <LicenseOverlay forceLogin={forceLicenseLogin} onValidated={handleLicenseValidated} onOpenAdmin={() => setShowAdminPanel(true)} />}
+      {!isLicenseValid && <LicenseOverlay key={forceLicenseLogin ? 'force-login' : 'normal-login'} forceLogin={forceLicenseLogin} onValidated={handleLicenseValidated} onOpenAdmin={() => setShowAdminPanel(true)} />}
       <AnimatePresence mode="wait">
         <motion.div key={currentBgIndex} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 2 }} className="absolute inset-0 z-0">
           {(() => {
