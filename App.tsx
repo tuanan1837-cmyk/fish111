@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, type ChangeEvent, Component } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Animal, type Background } from './db';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from "@google/generative-ai";
 import { Howl } from 'howler';
 import { 
   Plus, 

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { X, Loader2, Sparkles, Camera, FileImage, AlertCircle, Play } from 'lucide-react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI } from "@google/generative-ai";
 import { PRESET_SOUNDS } from './Constants';
 import { ANIMATION_PRESETS } from './Types';
 
