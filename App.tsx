@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, type ChangeEvent, Component } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, type Animal, type Background } from './db';
-import { GoogleGenAI } from "@google/generative-ai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Howl } from 'howler';
 import { 
   Plus, 
@@ -993,24 +993,34 @@ function MagicOceanApp() {
   };
 
   const checkContentWithGemini = async (base64Image: string) => {
+    // Gemini content moderation - skipped if API key not configured
+    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY || '';
+    if (!apiKey) {
+      console.warn('GEMINI_API_KEY not configured - skipping moderation');
+      return { safe: true, isCreature: true, suggestedName: "New Friend", suggestedType: "Other", suggestedAnimation: "swim", reason: "" };
+    }
+    
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: [
-          { text: `Analyze this image of a painted statue or drawing. 
-          1. Is it safe for children? (safe: boolean)
-          2. Is it a character, animal, or creature? (isCreature: boolean)
-          3. What is it? (e.g., "Blue Dragon", "Pink Cat") (suggestedName: string)
-          4. What category does it fit? (Fish, Shark, Turtle, Jellyfish, Dragon, Other) (suggestedType: string)
-          5. Which animation preset fits best? (swim, wiggle, walk, jump, float, spin) (suggestedAnimation: string)
-          6. Why did you reject it if unsafe? (reason: string)
-          Return ONLY JSON.` },
-          { inlineData: { mimeType: "image/png", data: base64Image.split(',')[1] } }
-        ],
-        config: { responseMimeType: "application/json" }
-      });
-      const responseText = typeof response.text === 'string' ? response.text : '';
+      const ai = new GoogleGenerativeAI(apiKey);
+      const model = ai.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const response = await model.generateContent([
+        `Analyze this image of a painted statue or drawing. 
+        1. Is it safe for children? (safe: boolean)
+        2. Is it a character, animal, or creature? (isCreature: boolean)
+        3. What is it? (e.g., "Blue Dragon", "Pink Cat") (suggestedName: string)
+        4. What category does it fit? (Fish, Shark, Turtle, Jellyfish, Dragon, Other) (suggestedType: string)
+        5. Which animation preset fits best? (swim, wiggle, walk, jump, float, spin) (suggestedAnimation: string)
+        6. Why did you reject it if unsafe? (reason: string)
+        Return ONLY JSON.`,
+        {
+          inlineData: {
+            mimeType: "image/png",
+            data: base64Image.split(',')[1]
+          }
+        }
+      ]);
+      
+      const responseText = response.response.text();
       return JSON.parse(responseText || '{}');
     } catch (err) {
       console.error("Moderation failed:", err);
