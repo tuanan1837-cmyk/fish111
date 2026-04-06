@@ -80,7 +80,7 @@ export function JoinModal({ onClose }: { onClose: () => void }) {
   const currentUrl = window.location.href;
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-6" onClick={onClose}>
-      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-[40px] p-10 max-w-md w-full text-center shadow-2xl" onClick={e => e.stopPropagation()}>
+      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-white rounded-[40px] p-10 max-w-md w-full text-center shadow-2xl" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <div className="w-20 h-20 bg-cyan-100 rounded-3xl flex items-center justify-center mx-auto mb-6"><QrCode size={40} className="text-cyan-600" /></div>
         <h2 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">THAM GIA ĐẠI DƯƠNG</h2>
         <p className="text-slate-500 mb-8 font-medium">Quét mã này bằng điện thoại để vẽ và thả sinh vật của riêng bạn!</p>
@@ -96,7 +96,7 @@ export function JoinModal({ onClose }: { onClose: () => void }) {
 export function GuideModal({ onClose }: { onClose: () => void }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl p-6" onClick={onClose}>
-      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-slate-800 border border-slate-700 rounded-[40px] p-10 max-w-2xl w-full shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar" onClick={e => e.stopPropagation()}>
+      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-slate-800 border border-slate-700 rounded-[40px] p-10 max-w-2xl w-full shadow-2xl overflow-y-auto max-h-[90vh] custom-scrollbar" onClick={(e: React.MouseEvent) => e.stopPropagation()}>
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-black text-white tracking-tight">HƯỚNG DẪN TRẢI NGHIỆM</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-white"><X size={32} /></button>
