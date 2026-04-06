@@ -89,8 +89,8 @@ export function CreateCreatureModal({ onClose, onCreate, processImage, checkCont
                   </div>
                 )}
               </div>
-              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFileUpload(e, true)} />
-              <input ref={fileInputRef} type="file" accept="image/*,video/*,image/gif" className="hidden" onChange={(e) => handleFileUpload(e, false)} />
+              <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFileUpload(e, true)} />
+              <input ref={fileInputRef} type="file" accept="image/*,video/*,image/gif" className="hidden" onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFileUpload(e, false)} />
             </div>
           ) : (
             <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -117,7 +117,7 @@ export function CreateCreatureModal({ onClose, onCreate, processImage, checkCont
                       {['#4F46E5', '#EF4444', '#10B981', '#F59E0B', '#EC4899', '#8B5CF6', '#06B6D4', '#FFFFFF'].map(c => (
                         <button key={c} onClick={() => setColor(c)} className={`w-10 h-10 rounded-full border-2 transition-all ${color === c ? 'border-white scale-110 shadow-lg' : 'border-transparent opacity-60 hover:opacity-100'}`} style={{ backgroundColor: c }} />
                       ))}
-                      <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="w-10 h-10 rounded-full bg-transparent border-none cursor-pointer" />
+                      <input type="color" value={color} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setColor(e.target.value)} className="w-10 h-10 rounded-full bg-transparent border-none cursor-pointer" />
                     </div>
                   </div>
                 </div>
@@ -125,7 +125,7 @@ export function CreateCreatureModal({ onClose, onCreate, processImage, checkCont
                 <div className="space-y-6">
                   <div>
                     <label className="block text-slate-400 text-xs font-bold uppercase mb-2">Tên sinh vật</label>
-                    <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Đặt tên..." className="w-full bg-slate-700 border border-slate-600 rounded-2xl px-5 py-3 text-white focus:border-indigo-500 transition-all" />
+                    <input type="text" value={name} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)} placeholder="Đặt tên..." className="w-full bg-slate-700 border border-slate-600 rounded-2xl px-5 py-3 text-white focus:border-indigo-500 transition-all" />
                   </div>
 
                   <div>
