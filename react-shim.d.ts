@@ -11,6 +11,8 @@ declare module 'react' {
   export function useContext<T>(context: any): T;
   export const Component: any;
   export const Fragment: any;
+  export const StrictMode: any;
+  export function createRoot(container: any): any;
 
   export type ChangeEvent<T = any> = any;
   export type MouseEvent = any;
@@ -47,6 +49,15 @@ declare module 'howler' {
   export const Howler: any;
   const _default: any;
   export default _default;
+}
+
+declare module 'react-dom/client' {
+  export function createRoot(container: any): any;
+}
+
+declare module '*.css' {
+  const content: any;
+  export default content;
 }
 
 declare namespace JSX {
