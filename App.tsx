@@ -406,7 +406,7 @@ function MagicOceanApp() {
   const treasures = useLiveQuery(() => db.treasures.where('roomId').equals(roomId).toArray(), [roomId]) || [];
   const sounds = useLiveQuery(() => db.sounds.toArray()) || [];
 
-  const bgmRef = useRef<Howl | null>(null);
+  const bgmRef = useRef<InstanceType<typeof Howl> | null>(null);
 
   useEffect(() => {
     const activeBgm = sounds.find(s => s.type === 'bgm');

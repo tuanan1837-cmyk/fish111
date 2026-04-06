@@ -1,6 +1,7 @@
 declare module 'react' {
   const React: any;
   export default React;
+
   export function useState<S>(initialState: S | (() => S)): [S, (value: S | ((prevState: S) => S)) => void];
   export function useEffect(effect: () => void | (() => void), deps?: readonly any[]): void;
   export function useRef<T>(initialValue: T | null): { current: T };
@@ -10,11 +11,22 @@ declare module 'react' {
   export function useContext<T>(context: any): T;
   export const Component: any;
   export const Fragment: any;
+
   export type ChangeEvent<T = any> = any;
   export type MouseEvent = any;
   export type TouchEvent = any;
   export type ReactNode = any;
   export type ReactElement = any;
+
+  export namespace JSX {
+    interface Element {}
+    interface ElementClass {}
+    interface IntrinsicElements {
+      [elemName: string]: any;
+    }
+    interface ElementAttributesProperty { props: {}; }
+    interface ElementChildrenAttribute { children: {}; }
+  }
 }
 
 declare namespace React {
