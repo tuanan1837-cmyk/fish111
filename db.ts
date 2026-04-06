@@ -50,7 +50,7 @@ export interface License {
   id?: number;
   key: string;
   machineId: string;
-  type: '24h' | '30d' | 'perm';
+  type: '24h' | '7d' | '30d' | '1y' | 'perm';
   activationDate: number;
   expiryDate: number;
   lastRunTime: number;
