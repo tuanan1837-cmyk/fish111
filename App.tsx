@@ -25,258 +25,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { removeBackground } from "@imgly/background-removal";
 import { QRCodeSVG } from 'qrcode.react';
-
-// --- Mobile Upload Component ---
-function MobileUpload() {
-  const [file, setFile] = useState<File | null>(null);
-  const [name, setName] = useState("");
-  const [animation, setAnimation] = useState("swim");
-  const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
-  const [error, setError] = useState("");
-  const [machineId, setMachineId] = useState("");
-  const [keyInput, setKeyInput] = useState("");
-  const [authStatus, setAuthStatus] = useState<'idle' | 'checking' | 'error' | 'success'>('idle');
-  const [authMessage, setAuthMessage] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const roomId = useMemo(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('room') || 'default';
-  }, []);
-
-  useEffect(() => {
-    setMachineId(LicenseService.getMachineId());
-  }, []);
-
-  const handleUpload = async () => {
-    if (!isAuthenticated) {
-      setStatus('error');
-      setError('Vui lòng xác thực key trước khi gửi ảnh.');
-      return;
-    }
-    if (!file) return;
-    setStatus('uploading');
-    setError("");
-
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('name', name || "Sinh vật mới");
-    formData.append('type', animation);
-    formData.append('roomId', roomId);
-
-    try {
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
-      const result = await response.json();
-      if (result.success) {
-        setStatus('success');
-        setFile(null);
-        setName("");
-      } else {
-        throw new Error(result.error || "Upload failed");
-      }
-    } catch (err: any) {
-      setStatus('error');
-      setError(err.message);
-    }
-  };
-
-  const handleAuthenticate = () => {
-    if (!keyInput.trim()) return;
-    setAuthStatus('checking');
-    const validation = LicenseService.validateKey(keyInput.trim(), machineId);
-    if (validation.isValid) {
-      setIsAuthenticated(true);
-      setAuthStatus('success');
-      setAuthMessage('Xác thực thành công! Bạn có thể gửi ảnh.');
-    } else {
-      setAuthStatus('error');
-      setAuthMessage('Key không hợp lệ cho máy này.');
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-[#00B4D8] text-white p-4 flex flex-col items-center justify-start relative overflow-x-hidden">
-      {/* Cartoonish Background Image */}
-      <div className="absolute inset-0 z-0">
-        <img 
-          src="https://images.unsplash.com/photo-1551244072-5d12893278ab?auto=format&fit=crop&q=80&w=1000" 
-          alt="Cartoonish Ocean" 
-          className="w-full h-full object-cover opacity-40"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#00B4D8]/60 to-[#0077B6]" />
-      </div>
-
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9 }} 
-        animate={{ opacity: 1, scale: 1 }} 
-        className="w-full max-w-md bg-white/20 backdrop-blur-2xl rounded-[50px] border-8 border-white/40 shadow-[0_30px_60px_rgba(0,0,0,0.2)] overflow-hidden relative z-10 mt-6"
-      >
-        {/* Cartoonish Cover Image */}
-        <div className="h-48 w-full relative overflow-hidden">
-          <img 
-            src="https://images.unsplash.com/photo-1510337550647-e84f83e34178?auto=format&fit=crop&q=80&w=800" 
-            alt="Cartoonish Cover" 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-8">
-            <div>
-              <h1 className="text-3xl font-black text-white uppercase tracking-tight leading-none drop-shadow-lg">TÔ MÀU VUI NHỘN</h1>
-              <p className="text-yellow-300 text-sm font-black uppercase tracking-widest mt-2 drop-shadow-md">Thế giới sáng tạo của bé</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-8">
-          {!isAuthenticated ? (
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight">Đăng nhập Key để gửi ảnh</h2>
-                <p className="text-slate-300 text-sm">Nhập key khách để xác thực trước khi gửi ảnh lên phòng.</p>
-              </div>
-              <div className="bg-slate-900/80 border border-slate-700 rounded-3xl p-5 space-y-4">
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">ID Máy</div>
-                <div className="bg-slate-800 border border-slate-700 rounded-2xl p-4 text-white font-mono break-all">{machineId || 'Đang tải...'}</div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={keyInput}
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setKeyInput(e.target.value.toUpperCase())}
-                    placeholder="XXXX-XXXX-XXXX-XXXX"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-4 text-white font-mono text-lg tracking-[0.2em] uppercase focus:outline-none focus:border-indigo-500"
-                  />
-                </div>
-                {authMessage && (
-                  <div className={`p-3 rounded-2xl text-sm ${authStatus === 'error' ? 'bg-red-500/10 text-red-300 border border-red-500/20' : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20'}`}>
-                    {authMessage}
-                  </div>
-                )}
-                <button
-                  onClick={handleAuthenticate}
-                  disabled={authStatus === 'checking' || !keyInput.trim()}
-                  className="w-full py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-500 transition-all disabled:opacity-50"
-                >
-                  {authStatus === 'checking' ? 'Đang xác thực...' : 'Xác thực Key'}
-                </button>
-              </div>
-            </div>
-          ) : status === 'success' ? (
-            <motion.div initial={{ scale: 0.5 }} animate={{ scale: 1 }} className="text-center space-y-8 py-6">
-              <div className="w-32 h-32 bg-yellow-400 text-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-2xl border-8 border-white animate-bounce">
-                <Sparkles size={64} />
-              </div>
-              <div className="space-y-3">
-                <h2 className="text-4xl font-black text-white uppercase tracking-tight">XONG RỒI!</h2>
-                <p className="text-white text-xl font-bold">Nhân vật của bé đang bơi lội vui vẻ rồi đó!</p>
-              </div>
-              <button 
-                onClick={() => setStatus('idle')} 
-                className="w-full py-6 bg-pink-500 text-white rounded-[30px] font-black text-2xl shadow-[0_10px_0_rgba(190,24,93,1)] hover:translate-y-1 hover:shadow-[0_5px_0_rgba(190,24,93,1)] active:translate-y-2 active:shadow-none transition-all uppercase border-4 border-white"
-              >
-                TIẾP TỤC VẼ
-              </button>
-            </motion.div>
-          ) : (
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <label className="text-sm font-black text-white uppercase tracking-widest ml-2">Tên của bé là gì?</label>
-                <input 
-                  type="text" 
-                  value={name} 
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)} 
-                  placeholder="Ví dụ: Bé Na Xinh Đẹp" 
-                  className="w-full bg-white/20 border-4 border-white/30 rounded-[25px] px-6 py-5 text-white placeholder:text-white/40 focus:outline-none focus:border-yellow-400 focus:bg-white/30 transition-all font-black text-xl" 
-                />
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-sm font-black text-white uppercase tracking-widest ml-2">Bé muốn nhân vật làm gì?</label>
-                <div className="grid grid-cols-3 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                  {Object.keys(ANIMATION_PRESETS).map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setAnimation(p)}
-                      className={`py-4 px-2 rounded-[20px] text-xs font-black uppercase transition-all border-4 ${
-                        animation === p 
-                        ? 'bg-yellow-400 border-white text-blue-900 shadow-lg scale-105' 
-                        : 'bg-white/10 border-white/10 text-white/50 hover:bg-white/20'
-                      }`}
-                    >
-                      {ANIMATION_PRESETS[p].label.split(' ')[0]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <label className="text-sm font-black text-white uppercase tracking-widest ml-2">Chụp ảnh nhân vật bé vẽ</label>
-                <div className="relative group">
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={(e: ChangeEvent<HTMLInputElement>) => setFile(e.target.files?.[0] || null)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-                  />
-                  <div className={`w-full h-52 border-4 border-dashed rounded-[40px] flex flex-col items-center justify-center transition-all ${
-                    file 
-                    ? 'border-green-400 bg-green-400/20' 
-                    : 'border-white/30 group-hover:border-white/60 bg-white/10'
-                  }`}>
-                    {file ? (
-                      <div className="text-center px-6">
-                        <div className="w-16 h-16 bg-green-400 rounded-full flex items-center justify-center mx-auto mb-4 border-4 border-white shadow-lg">
-                          <Plus className="text-white rotate-45" size={32} />
-                        </div>
-                        <p className="text-white font-black text-lg truncate max-w-[250px]">{file.name}</p>
-                        <p className="text-sm text-white/60 mt-2 font-bold uppercase tracking-widest">Bấm để chụp lại</p>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform border-4 border-white/30">
-                          <Plus className="text-white" size={48} />
-                        </div>
-                        <p className="text-white font-black text-sm uppercase tracking-widest text-center px-6">BẤM ĐỂ CHỤP ẢNH</p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {status === 'error' && (
-                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-white text-sm font-black text-center bg-red-500 py-3 rounded-2xl border-4 border-white shadow-lg">
-                  {error}
-                </motion.p>
-              )}
-
-              <button 
-                onClick={handleUpload} 
-                disabled={!file || status === 'uploading'} 
-                className={`w-full py-6 rounded-[30px] font-black text-3xl shadow-[0_10px_0_rgba(2,132,199,1)] transition-all uppercase tracking-tight border-4 border-white ${
-                  !file || status === 'uploading' 
-                  ? 'bg-slate-400 text-white/50 cursor-not-allowed shadow-none translate-y-2' 
-                  : 'bg-blue-500 text-white hover:translate-y-1 hover:shadow-[0_5px_0_rgba(2,132,199,1)] active:translate-y-2 active:shadow-none'
-                }`}
-              >
-                {status === 'uploading' ? 'ĐANG GỬI...' : 'THẢ VÀO BIỂN!'}
-              </button>
-            </div>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Footer Info */}
-      <p className="mt-8 text-white font-black text-xs uppercase tracking-[0.3em] relative z-10 drop-shadow-md">
-        MAGIC OCEAN &bull; 2026
-      </p>
-    </div>
-  );
-}
-
-// Internal Imports
 import { 
   LocalAnimal, 
   BgFish, 
@@ -302,6 +50,7 @@ import { CreateCreatureModal } from './components/Ocean/CreateCreatureModal';
 import { GameStartOverlay, JoinModal, GuideModal } from './components/Ocean/Overlays';
 import { LicenseOverlay } from './components/Ocean/LicenseOverlay';
 import { LicenseService, type LicenseType } from './services/LicenseService';
+import { MobileUpload } from './components/Ocean/MobileUpload';
 
 // --- Main App Component ---
 
@@ -469,6 +218,20 @@ function MagicOceanApp() {
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
+
+  // --- Theater Mode ESC Key Listener ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isTheaterMode) {
+        setIsTheaterMode(false);
+        if (document.fullscreenElement) document.exitFullscreen();
+      }
+    };
+    if (isTheaterMode) {
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isTheaterMode]);
 
   // --- Background Rotation ---
   useEffect(() => {
@@ -1162,20 +925,21 @@ function MagicOceanApp() {
           })()}
         </motion.div>
       </AnimatePresence>
-      <canvas ref={canvasRef} className="absolute inset-0 z-10 cursor-pointer" onClick={handleClick} onTouchStart={handleClick} />
-      {isTheaterMode && (
-        <div className="absolute top-6 right-6 z-30 pointer-events-auto">
-          <button 
-            onClick={() => {
-              setIsTheaterMode(false);
-              if (document.fullscreenElement) document.exitFullscreen();
-            }} 
-            className="p-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white hover:bg-white/20 transition-all flex items-center gap-2"
-          >
-            <Eye size={20} /><span className="text-xs font-bold uppercase tracking-widest">Thoát Rạp Chiếu</span>
-          </button>
-        </div>
-      )}
+      <canvas ref={canvasRef} className="absolute inset-0 z-10 cursor-pointer" onClick={(e) => {
+        if (isTheaterMode) {
+          setIsTheaterMode(false);
+          if (document.fullscreenElement) document.exitFullscreen();
+        } else {
+          handleClick(e);
+        }
+      }} onTouchStart={(e) => {
+        if (isTheaterMode) {
+          setIsTheaterMode(false);
+          if (document.fullscreenElement) document.exitFullscreen();
+        } else {
+          handleClick(e);
+        }
+      }} />
       {!isTheaterMode && (
         <div className="absolute inset-0 z-20 pointer-events-none p-6 flex flex-col justify-end items-end">
           <div className="flex flex-col gap-3 pointer-events-auto items-end">
@@ -1249,7 +1013,12 @@ function MagicOceanApp() {
 }
 
 export default function App() {
-  return (
-    <MagicOceanApp />
-  );
+  const isUploadPage = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hasUpload = params.has('upload') || window.location.hash.includes('upload');
+    console.log('URL:', window.location.href, 'isUploadPage:', hasUpload);
+    return hasUpload;
+  }, []);
+
+  return isUploadPage ? <MobileUpload /> : <MagicOceanApp />;
 }

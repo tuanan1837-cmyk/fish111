@@ -39,7 +39,7 @@ export function AdminPanel({ animals, onDelete, onClear, onClose, onBackgroundUp
   const [copySuccess, setCopySuccess] = useState(false);
   
   const sounds = useLiveQuery(() => db.sounds.toArray()) || [];
-  const uploadUrl = `${window.location.origin}/upload?room=${roomId}`;
+  const uploadUrl = `${window.location.origin}/?upload=1&room=${roomId}`;
 
   const handleGenerateKey = () => {
     if (!targetMachineId.trim()) return;
