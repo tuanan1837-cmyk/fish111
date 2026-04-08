@@ -12,11 +12,36 @@ export function MobileUpload() {
   const [sound, setSound] = useState("Pop");
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [error, setError] = useState("");
+  const [ws, setWs] = useState<WebSocket | null>(null);
 
   const roomId = useMemo(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('room') || 'default';
   }, []);
+
+  // Setup WebSocket for sync
+  useEffect(() => {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const socket = new WebSocket(`${protocol}//${window.location.host}`);
+    socket.onopen = () => {
+      console.log('Mobile upload WebSocket connected');
+    };
+    socket.onerror = (err) => {
+      console.error("Mobile upload WebSocket error:", err);
+    };
+    setWs(socket);
+    return () => socket.close();
+  }, []);
+
+  const playSound = (soundName: string) => {
+    try {
+      const audio = new Audio(PRESET_SOUNDS[soundName]);
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+    } catch (e) {
+      console.log('Cannot play sound:', soundName);
+    }
+  };
 
   const handleUpload = async () => {
     if (!file) return;
@@ -37,7 +62,7 @@ export function MobileUpload() {
         // Thêm vào database
         await db.animals.add({
           name: name.trim(),
-          type: animation,
+          type: 'custom', // Simple type for mobile upload
           color: '#00B4D8',
           image: imageDataUrl,
           sound: sound,
@@ -55,6 +80,22 @@ export function MobileUpload() {
           animationType: animation,
           flipX: false
         });
+
+        // Send WebSocket message to sync with other clients
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'NEW_CHARACTER',
+            data: {
+              name: name.trim(),
+              type: 'custom',
+              color: '#00B4D8',
+              image: imageDataUrl,
+              sound: sound,
+              animationType: animation,
+              roomId: roomId
+            }
+          }));
+        }
 
         setStatus('success');
         setFile(null);
@@ -165,7 +206,10 @@ export function MobileUpload() {
                   {Object.keys(PRESET_SOUNDS).map((soundName) => (
                     <button
                       key={soundName}
-                      onClick={() => setSound(soundName)}
+                      onClick={() => {
+                        setSound(soundName);
+                        playSound(soundName);
+                      }}
                       className={`py-3 px-2 rounded-[15px] text-xs font-black uppercase transition-all border-3 flex items-center justify-center gap-1 ${
                         sound === soundName
                         ? 'bg-yellow-400 border-white text-blue-900 shadow-lg scale-105'
