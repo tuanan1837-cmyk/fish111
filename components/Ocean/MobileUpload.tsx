@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useMemo, type ChangeEvent } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Sparkles, ArrowLeft } from 'lucide-react';
+import { Plus, Sparkles, ArrowLeft, Volume2 } from 'lucide-react';
 import { db } from '../../db';
 import { ANIMATION_PRESETS } from './Types';
+import { PRESET_SOUNDS } from './Constants';
 
 export function MobileUpload() {
   const [file, setFile] = useState<File | null>(null);
   const [name, setName] = useState("");
   const [animation, setAnimation] = useState("swim");
+  const [sound, setSound] = useState("Pop");
   const [status, setStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
   const [error, setError] = useState("");
 
@@ -38,7 +40,7 @@ export function MobileUpload() {
           type: animation,
           color: '#00B4D8',
           image: imageDataUrl,
-          sound: 'Pop',
+          sound: sound,
           x: Math.random() * window.innerWidth,
           y: Math.random() * window.innerHeight,
           vx: (Math.random() - 0.5) * 2,
@@ -58,6 +60,7 @@ export function MobileUpload() {
         setFile(null);
         setName("");
         setAnimation('swim');
+        setSound('Pop');
       } catch (err: any) {
         setStatus('error');
         setError(err.message || 'Lỗi khi tải ảnh');
@@ -151,6 +154,26 @@ export function MobileUpload() {
                       }`}
                     >
                       {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-black text-white uppercase tracking-widest ml-2">Âm thanh khi chạm vào *</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.keys(PRESET_SOUNDS).map((soundName) => (
+                    <button
+                      key={soundName}
+                      onClick={() => setSound(soundName)}
+                      className={`py-3 px-2 rounded-[15px] text-xs font-black uppercase transition-all border-3 flex items-center justify-center gap-1 ${
+                        sound === soundName
+                        ? 'bg-yellow-400 border-white text-blue-900 shadow-lg scale-105'
+                        : 'bg-white/10 border-white/10 text-white/70 hover:bg-white/20'
+                      }`}
+                    >
+                      <Volume2 size={12} />
+                      {soundName}
                     </button>
                   ))}
                 </div>
