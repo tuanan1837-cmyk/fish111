@@ -65,46 +65,27 @@ export function MobileUpload() {
       try {
         const imageDataUrl = event.target?.result as string;
         
-        // Thêm vào database
-        await db.animals.add({
-          name: name.trim(),
-          type: 'custom', // Simple type for mobile upload
-          color: '#00B4D8',
-          image: imageDataUrl,
-          sound: sound,
-          x: Math.random() * window.innerWidth,
-          y: Math.random() * window.innerHeight,
-          vx: (Math.random() - 0.5) * 2,
-          vy: (Math.random() - 0.5) * 2,
-          isExploding: false,
-          explosionStartTime: null,
-          uid: 'mobile-upload',
-          createdAt: Date.now(),
-          respawnCount: 0,
-          roomId: roomId,
-          distortion: 1,
-          animationType: animation,
-          flipX: false
-        });
-
-        // Send WebSocket message to sync with other clients
+        // Send raw image to server for processing (background removal happens on big screen)
         if (ws && ws.readyState === WebSocket.OPEN) {
           const messageData = {
-            type: 'NEW_CHARACTER',
+            type: 'PROCESS_IMAGE',
             data: {
               name: name.trim(),
               type: 'custom',
               color: '#00B4D8',
-              image: imageDataUrl,
+              rawImage: imageDataUrl,
               sound: sound,
               animationType: animation,
               roomId: roomId
             }
           };
-          console.log('Sending WebSocket message:', messageData);
+          console.log('Sending PROCESS_IMAGE message to server');
           ws.send(JSON.stringify(messageData));
         } else {
           console.warn('WebSocket not connected, readyState:', ws?.readyState);
+          setStatus('error');
+          setError('Không thể kết nối đến máy chủ');
+          return;
         }
 
         setStatus('success');

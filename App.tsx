@@ -103,11 +103,150 @@ function MagicOceanApp() {
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const socket = new WebSocket(`${protocol}//${window.location.host}`);
+
+    // Helper function for image processing with background removal
+    const processImageForCharacter = async (file: File): Promise<string> => {
+      try {
+        const resizedFile: any = await new Promise<File>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const MAX_DIM = 512;
+              let width = img.width, height = img.height;
+              if (width > height) { if (width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; } }
+              else { if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; } }
+              canvas.width = width; canvas.height = height;
+              const ctx = canvas.getContext('2d'); ctx?.drawImage(img, 0, 0, width, height);
+              canvas.toBlob((blob) => { if (blob) resolve(new File([blob], file.name, { type: 'image/jpeg' })); }, 'image/jpeg', 0.8);
+            };
+            img.src = e.target?.result as string;
+          };
+          reader.readAsDataURL(file);
+        });
+        let blob: any;
+        try { 
+          blob = await removeBackground(resizedFile, { model: 'isnet_fp16', output: { format: 'image/png', quality: 0.8 } });
+        }
+        catch (bgError) { 
+          const response = await fetch(URL.createObjectURL(resizedFile)); 
+          blob = await response.blob(); 
+        }
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d', { willReadFrequently: true });
+              if (!ctx) return reject("Canvas context failed");
+              const tempCanvas = document.createElement('canvas');
+              const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+              if (!tempCtx) return reject("Temp canvas failed");
+              tempCanvas.width = img.width; tempCanvas.height = img.height; tempCtx.drawImage(img, 0, 0);
+              const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+              const data = imageData.data;
+              let minX = tempCanvas.width, minY = tempCanvas.height, maxX = 0, maxY = 0, found = false;
+              for (let y = 0; y < tempCanvas.height; y++) {
+                for (let x = 0; x < tempCanvas.width; x++) {
+                  if (data[(y * tempCanvas.width + x) * 4 + 3] > 20) {
+                    if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; found = true;
+                  }
+                }
+              }
+              canvas.width = 256; canvas.height = 256;
+              if (found) {
+                const contentWidth = maxX - minX, contentHeight = maxY - minY;
+                const size = Math.max(contentWidth, contentHeight);
+                const scale = 220 / size, drawWidth = contentWidth * scale, drawHeight = contentHeight * scale;
+                ctx.drawImage(img, minX, minY, contentWidth, contentHeight, (256 - drawWidth) / 2, (256 - drawHeight) / 2, drawWidth, drawHeight);
+              } else { ctx.drawImage(img, 0, 0, 256, 256); }
+              resolve(canvas.toDataURL('image/png'));
+            };
+            img.src = e.target?.result as string;
+          };
+          reader.readAsDataURL(blob);
+        });
+      } catch (error) {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+              canvas.width = 256; canvas.height = 256; ctx?.drawImage(img, 0, 0, 256, 256);
+              resolve(canvas.toDataURL('image/png'));
+            };
+            img.src = e.target?.result as string;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    };
+
     socket.onmessage = async (event) => {
       try {
         const message = JSON.parse(event.data);
         console.log('Main app received WebSocket message:', message);
-        if (message.type === 'NEW_CHARACTER') {
+        
+        // Handle PROCESS_IMAGE - background removal happens here on big screen
+        if (message.type === 'PROCESS_IMAGE') {
+          const char = message.data;
+          console.log('Processing PROCESS_IMAGE:', char.name);
+          if (char.roomId !== roomId) {
+            console.log('Room ID mismatch:', char.roomId, 'vs', roomId);
+            return;
+          }
+
+          showToast(`Đang xử lý ảnh nhân vật "${char.name}"...`, 'info');
+
+          try {
+            // Convert data URL to File object
+            const response = await fetch(char.rawImage);
+            const blob = await response.blob();
+            const file = new File([blob], `${char.name}.png`, { type: 'image/png' });
+
+            // Process image with background removal
+            let processedImage: string;
+            try {
+              processedImage = await processImageForCharacter(file);
+            } catch (bgError) {
+              console.warn('Background removal failed, using original:', bgError);
+              processedImage = char.rawImage;
+            }
+
+            // Save to DB with processed image
+            await db.animals.add({
+              name: char.name,
+              type: char.type,
+              color: char.color,
+              image: processedImage,
+              sound: char.sound || 'Pop',
+              x: Math.random() * window.innerWidth,
+              y: Math.random() * window.innerHeight,
+              vx: (Math.random() - 0.5) * 2,
+              vy: (Math.random() - 0.5) * 2,
+              isExploding: false,
+              explosionStartTime: null,
+              uid: 'remote-user',
+              createdAt: Date.now(),
+              respawnCount: 0,
+              roomId: char.roomId,
+              distortion: 1,
+              animationType: char.animationType || 'swim',
+              flipX: false
+            });
+
+            showToast(`Nhân vật "${char.name}" vừa gia nhập đại dương!`, "success");
+            console.log('Successfully added character to database:', char.name);
+          } catch (processError) {
+            console.error('Error processing image:', processError);
+            showToast(`Lỗi xử lý ảnh cho "${char.name}"`, 'error');
+          }
+        }
+        // Handle NEW_CHARACTER for backward compatibility
+        else if (message.type === 'NEW_CHARACTER') {
           const char = message.data;
           console.log('Processing NEW_CHARACTER:', char);
           if (char.roomId !== roomId) {
@@ -149,7 +288,7 @@ function MagicOceanApp() {
     };
     setWs(socket);
     return () => socket.close();
-  }, [showToast]);
+  }, [showToast, roomId]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imageCache = useRef<Record<string, HTMLImageElement>>({});
