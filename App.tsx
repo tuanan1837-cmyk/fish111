@@ -106,9 +106,14 @@ function MagicOceanApp() {
     socket.onmessage = async (event) => {
       try {
         const message = JSON.parse(event.data);
+        console.log('Main app received WebSocket message:', message);
         if (message.type === 'NEW_CHARACTER') {
           const char = message.data;
-          if (char.roomId !== roomId) return;
+          console.log('Processing NEW_CHARACTER:', char);
+          if (char.roomId !== roomId) {
+            console.log('Room ID mismatch:', char.roomId, 'vs', roomId);
+            return;
+          }
           
           // Save to DB so it persists and syncs to local state
           await db.animals.add({
@@ -116,7 +121,7 @@ function MagicOceanApp() {
             type: char.type,
             color: char.color,
             image: char.image,
-            sound: 'Pop', // Default sound
+            sound: char.sound || 'Pop', // Use char.sound if available
             x: Math.random() * window.innerWidth,
             y: Math.random() * window.innerHeight,
             vx: (Math.random() - 0.5) * 2,
@@ -128,11 +133,12 @@ function MagicOceanApp() {
             respawnCount: 0,
             roomId: char.roomId,
             distortion: 1,
-            animationType: char.type,
+            animationType: char.animationType || char.type, // Use animationType if available
             flipX: false
           });
 
           showToast(`Nhân vật "${char.name}" vừa gia nhập đại dương!`, "success");
+          console.log('Successfully added character to database:', char.name);
         }
       } catch (e) {
         console.error("Failed to parse WebSocket message:", e);

@@ -26,8 +26,14 @@ export function MobileUpload() {
     socket.onopen = () => {
       console.log('Mobile upload WebSocket connected');
     };
+    socket.onmessage = (event) => {
+      console.log('Mobile upload received:', event.data);
+    };
     socket.onerror = (err) => {
       console.error("Mobile upload WebSocket error:", err);
+    };
+    socket.onclose = () => {
+      console.log('Mobile upload WebSocket closed');
     };
     setWs(socket);
     return () => socket.close();
@@ -83,7 +89,7 @@ export function MobileUpload() {
 
         // Send WebSocket message to sync with other clients
         if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
+          const messageData = {
             type: 'NEW_CHARACTER',
             data: {
               name: name.trim(),
@@ -94,7 +100,11 @@ export function MobileUpload() {
               animationType: animation,
               roomId: roomId
             }
-          }));
+          };
+          console.log('Sending WebSocket message:', messageData);
+          ws.send(JSON.stringify(messageData));
+        } else {
+          console.warn('WebSocket not connected, readyState:', ws?.readyState);
         }
 
         setStatus('success');
